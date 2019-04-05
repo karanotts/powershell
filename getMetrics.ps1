@@ -6,8 +6,8 @@ $container         = Get-AzureStorageShare -Name $containerName -Context $storag
 $AzureContext      = Select-AzureRmSubscription -SubscriptionId $subscriptionIdProd
 $serverFarms       = (Get-AzureRmResource -ResourceType "Microsoft.Web/serverFarms")
 
-mkdir temp 
-cd ./temp
+# mkdir temp 
+# cd ./temp
 
 foreach ($farm in $serverFarms) {
 
@@ -26,7 +26,14 @@ foreach ($farm in $serverFarms) {
 
 $CurrentFolder = (Get-Item .).FullName
 
+
+# Upload to File Storage
 Get-ChildItem -Recurse | Where-Object { $_.GetType().Name -eq "FileInfo"} | ForEach-Object {
     $path=$_.FullName.Substring($Currentfolder.Length+1).Replace("\","/")
     Set-AzureStorageFileContent -Share $container -Source $_.FullName -Path $path -Force
+}
+
+# Upload to Blob Storage
+Get-ChildItem -Recurse | Where-Object { $_.GetType().Name -eq "FileInfo"} | ForEach-Object {
+    Set-AzureStorageBlobContent -Container $containerName -Context $storageContext -File $_ -Force
 }
